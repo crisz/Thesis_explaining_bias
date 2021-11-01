@@ -3,7 +3,7 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from tqdm import tqdm
 
 from dataset_utils.load_sst2 import load_train_dataset, load_val_dataset
-from transformers import BertTokenizer, BertForSequenceClassification, AdamW
+from transformers import BertTokenizer, BertForSequenceClassification, AdamW, get_linear_schedule_with_warmup
 import torch
 
 from utils.cuda import get_device
@@ -90,6 +90,10 @@ def train(train_dataset, val_dataset):
     epochs = 4
 
     model.train()
+    scheduler = get_linear_schedule_with_warmup(optimizer,
+                                    num_warmup_steps=0,  # Default value in run_glue.py
+                                    num_training_steps=len(train_dataloader)*epochs)
+
     for epoch in range(epochs):
         print("Epoch {} out of {}".format(epoch, epochs))
         total_train_loss = 0
@@ -105,16 +109,15 @@ def train(train_dataset, val_dataset):
                                    labels=b_labels,
                                    return_dict=True)
             loss = result.loss
-            logits = result.logits
             total_train_loss += loss.item()
             loss.backward()
 
             # Avoid the exploding gradient problem:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
             # TODO: Update the learning rate.
-            # scheduler.step()
+            scheduler.step()
         avg_train_loss = total_train_loss / len(train_dataloader)
         print("Average train loss is {}".format(avg_train_loss))
 
