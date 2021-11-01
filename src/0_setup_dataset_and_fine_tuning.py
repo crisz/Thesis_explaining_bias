@@ -85,7 +85,7 @@ def train(train_dataset, val_dataset):
     # TODO: learning rate and epsilon
     optimizer = AdamW(model.parameters())
 
-    epochs = 4
+    epochs = 1
 
     model.train()
     for epoch in range(epochs):
