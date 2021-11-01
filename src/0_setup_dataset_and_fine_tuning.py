@@ -41,13 +41,12 @@ def main():
         input_ids = torch.cat(input_ids, dim=0)
         attention_masks = torch.cat(attention_masks, dim=0)
         print(train_labels.shape)
-        # labels = torch.tensor(np.array(train_labels, dtype=torch.float16))
 
-        # Print sentence 0, now as a list of IDs.
-        print(train_sentences.shape)
-        print(input_ids.shape)
-        print('Original: ', train_sentences[1])
-        print('Token IDs:', input_ids[1])
+    # labels = torch.tensor(np.array(train_labels, dtype=torch.float16))
+
+    # Print sentence 0, now as a list of IDs.
+    print('Original: ', train_sentences[1])
+    print('Token IDs:', input_ids[1])
 
 
 if __name__ == '__main__':
