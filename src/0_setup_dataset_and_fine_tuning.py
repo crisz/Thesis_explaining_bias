@@ -40,7 +40,8 @@ def main():
         # Convert the lists into tensors.
         input_ids = torch.cat(input_ids, dim=0)
         attention_masks = torch.cat(attention_masks, dim=0)
-        labels = torch.tensor(np.array(train_labels, dtype=torch.float16))
+        print(train_labels.shape)
+        # labels = torch.tensor(np.array(train_labels, dtype=torch.float16))
 
         # Print sentence 0, now as a list of IDs.
         print('Original: ', train_sentences[1])
