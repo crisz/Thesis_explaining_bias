@@ -44,6 +44,8 @@ def main():
         # labels = torch.tensor(np.array(train_labels, dtype=torch.float16))
 
         # Print sentence 0, now as a list of IDs.
+        print(train_sentences.shape)
+        print(input_ids.shape)
         print('Original: ', train_sentences[1])
         print('Token IDs:', input_ids[1])
 
