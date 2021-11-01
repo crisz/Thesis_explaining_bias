@@ -84,8 +84,7 @@ def train(train_dataset, val_dataset):
 
     device = get_device()
     model.to(device)
-    # TODO: learning rate and epsilon
-    optimizer = AdamW(model.parameters())
+    optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
 
     epochs = 4
 
