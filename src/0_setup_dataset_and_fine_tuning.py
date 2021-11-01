@@ -1,5 +1,5 @@
 import numpy as np
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from tqdm import tqdm
 
 from dataset_utils.load_sst2 import load_train_dataset, load_val_dataset
@@ -7,22 +7,24 @@ from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 import torch
 
 from utils.cuda import get_device
+from utils.save_model import save_model
 
 
 def main():
     train_labels, train_sentences = load_train_dataset()
-    train_input_ids, train_attention_masks = get_tokens_from_sentences(train_sentences)
+    train_input_ids, train_attention_masks, train_tokenizer = get_tokens_from_sentences(train_sentences)
 
     train_labels = torch.Tensor(train_labels).long()
     train_dataset = TensorDataset(train_input_ids, train_attention_masks, train_labels)
 
     val_labels, val_sentences = load_val_dataset()
-    val_input_ids, val_attention_masks = get_tokens_from_sentences(val_sentences)
+    val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences)
 
     val_labels = torch.Tensor(val_labels).long()
     val_dataset = TensorDataset(val_input_ids, val_attention_masks, val_labels)
 
-    train(train_dataset=train_dataset, val_dataset=val_dataset)
+    model = train(train_dataset=train_dataset, val_dataset=val_dataset)
+    save_model(model, train_tokenizer, 'bert-base-uncased-fine-tuned-sst2')
 
 
 def get_tokens_from_sentences(sentences):
@@ -49,7 +51,7 @@ def get_tokens_from_sentences(sentences):
     # Convert the lists into tensors.
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
-    return input_ids, attention_masks
+    return input_ids, attention_masks, tokenizer
 
 
 def flat_accuracy(preds, labels):
@@ -69,7 +71,7 @@ def train(train_dataset, val_dataset):
 
     val_dataloader = DataLoader(
         val_dataset,
-        sampler=RandomSampler(train_dataset),
+        sampler=SequentialSampler(val_dataset),
         batch_size=batch_size
     )
 
@@ -85,7 +87,7 @@ def train(train_dataset, val_dataset):
     # TODO: learning rate and epsilon
     optimizer = AdamW(model.parameters())
 
-    epochs = 1
+    epochs = 4
 
     model.train()
     for epoch in range(epochs):
@@ -119,7 +121,8 @@ def train(train_dataset, val_dataset):
         print("Calculating the val accuracy...")
         total_eval_loss = 0
         total_eval_accuracy = 0
-        for batch in val_dataloader:
+        model.eval()
+        for batch in tqdm(val_dataloader):
             b_input_ids = batch[0].to(device)
             b_input_mask = batch[1].to(device)
             b_labels = batch[2].to(device)
@@ -148,6 +151,7 @@ def train(train_dataset, val_dataset):
             # Report the final accuracy for this validation run.
         avg_val_accuracy = total_eval_accuracy / len(val_dataloader)
         print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
+    return model
 
 
 if __name__ == '__main__':
