@@ -7,7 +7,7 @@ TRAIN_PATH = DATASET_PATH_BASE / 'sst2' / 'train.tsv'
 TEST_PATH = DATASET_PATH_BASE / 'sst2' / 'test.tsv'
 
 
-def load_dataset(path):
+def load_sst2_dataset(path):
     df = pd.read_csv(path, sep='\t', header=None, names=['similarity', 's1'])
     npy = df.values
     dataset = np.swapaxes(npy, 0, 1)
@@ -17,9 +17,9 @@ def load_dataset(path):
     return labels, data
 
 
-def load_train_dataset():
-    return load_dataset(TRAIN_PATH)
+def load_sst2_train_dataset():
+    return load_sst2_dataset(TRAIN_PATH)
 
 
-def load_val_dataset():
-    return load_dataset(TEST_PATH)
+def load_sst2_val_dataset():
+    return load_sst2_dataset(TEST_PATH)

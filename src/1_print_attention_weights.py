@@ -1,6 +1,6 @@
 import torch
 
-from dataset_utils.load_sst2 import load_val_dataset
+from dataset_utils.load_sst2 import load_sst2_val_dataset
 from utils.cuda import get_device
 from utils.huggingface import get_tokens_from_sentences
 from utils.save_model import load_model
@@ -8,7 +8,7 @@ from utils.save_model import load_model
 
 def main():
     model, tokenizer = load_model('bert-base-uncased-fine-tuned-sst2')
-    val_labels, val_sentences = load_val_dataset()
+    val_labels, val_sentences = load_sst2_val_dataset()
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()

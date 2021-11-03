@@ -2,7 +2,8 @@ import numpy as np
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from tqdm import tqdm
 
-from dataset_utils.load_sst2 import load_train_dataset, load_val_dataset
+from dataset_utils.load_misogyny import load_misogyny_val_dataset, load_misogyny_train_dataset
+from dataset_utils.load_sst2 import load_sst2_train_dataset, load_sst2_val_dataset
 from transformers import BertForSequenceClassification, AdamW, get_linear_schedule_with_warmup
 import torch
 
@@ -12,20 +13,20 @@ from utils.save_model import save_model
 
 
 def main():
-    train_labels, train_sentences = load_train_dataset()
+    train_labels, train_sentences = load_misogyny_train_dataset()
     train_input_ids, train_attention_masks, train_tokenizer = get_tokens_from_sentences(train_sentences)
 
     train_labels = torch.Tensor(train_labels).long()
     train_dataset = TensorDataset(train_input_ids, train_attention_masks, train_labels)
 
-    val_labels, val_sentences = load_val_dataset()
+    val_labels, val_sentences = load_misogyny_val_dataset()
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences)
 
     val_labels = torch.Tensor(val_labels).long()
     val_dataset = TensorDataset(val_input_ids, val_attention_masks, val_labels)
 
     model = train(train_dataset=train_dataset, val_dataset=val_dataset)
-    save_model(model, train_tokenizer, 'bert-base-uncased-fine-tuned-sst2')
+    save_model(model, train_tokenizer, 'bert-base-uncased-fine-tuned-misogyny')
 
 
 def flat_accuracy(preds, labels):
