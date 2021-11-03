@@ -3,10 +3,11 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from tqdm import tqdm
 
 from dataset_utils.load_sst2 import load_train_dataset, load_val_dataset
-from transformers import BertTokenizer, BertForSequenceClassification, AdamW, get_linear_schedule_with_warmup
+from transformers import BertForSequenceClassification, AdamW, get_linear_schedule_with_warmup
 import torch
 
 from utils.cuda import get_device
+from utils.huggingface import get_tokens_from_sentences
 from utils.save_model import save_model
 
 
@@ -25,33 +26,6 @@ def main():
 
     model = train(train_dataset=train_dataset, val_dataset=val_dataset)
     save_model(model, train_tokenizer, 'bert-base-uncased-fine-tuned-sst2')
-
-
-def get_tokens_from_sentences(sentences):
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-
-    # Tokenize all of the sentences and map the tokens to their word IDs.
-    input_ids = []
-    attention_masks = []
-
-    for sentence in sentences:
-        encoded_dict = tokenizer.encode_plus(
-            sentence,  # Sentence to encode.
-            add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
-            truncation=True,
-            max_length=64,  # Pad & truncate all sentences.
-            padding='max_length',
-            return_attention_mask=True,  # Construct attn. masks.
-            return_tensors='pt',  # Return pytorch tensors.
-        )
-
-        input_ids.append(encoded_dict['input_ids'])
-        attention_masks.append(encoded_dict['attention_mask'])
-
-    # Convert the lists into tensors.
-    input_ids = torch.cat(input_ids, dim=0)
-    attention_masks = torch.cat(attention_masks, dim=0)
-    return input_ids, attention_masks, tokenizer
 
 
 def flat_accuracy(preds, labels):
@@ -90,8 +64,8 @@ def train(train_dataset, val_dataset):
 
     model.train()
     scheduler = get_linear_schedule_with_warmup(optimizer,
-                                    num_warmup_steps=0,  # Default value in run_glue.py
-                                    num_training_steps=len(train_dataloader)*epochs)
+                                                num_warmup_steps=0,  # Default value in run_glue.py
+                                                num_training_steps=len(train_dataloader) * epochs)
 
     for epoch in range(epochs):
         print("Epoch {} out of {}".format(epoch, epochs))
@@ -131,10 +105,10 @@ def train(train_dataset, val_dataset):
 
             with torch.no_grad():
                 result = model.forward(b_input_ids,
-                               token_type_ids=None,
-                               attention_mask=b_input_mask,
-                               labels=b_labels,
-                               return_dict=True)
+                                       token_type_ids=None,
+                                       attention_mask=b_input_mask,
+                                       labels=b_labels,
+                                       return_dict=True)
 
             loss = result.loss
             logits = result.logits
@@ -143,7 +117,7 @@ def train(train_dataset, val_dataset):
             total_eval_loss += loss.item()
 
             # Move logits and labels to CPU
-            logits = logits.detach().cpu().numpy()
+            logits = logits.detach().to('cpu').numpy()
             label_ids = b_labels.to('cpu').numpy()
 
             # Calculate the accuracy for this batch of test sentences, and
