@@ -1,4 +1,4 @@
-torch
+pytorch
 pandas
-transformers
-transformers[torch]
+transformers=4.12.3
+shap

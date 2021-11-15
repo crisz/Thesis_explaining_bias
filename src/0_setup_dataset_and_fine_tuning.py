@@ -69,7 +69,7 @@ def train(train_dataset, val_dataset):
                                                 num_training_steps=len(train_dataloader) * epochs)
 
     for epoch in range(epochs):
-        print("Epoch {} out of {}".format(epoch, epochs))
+        print("Epoch {} out of {}".format(epoch+1, epochs))
         total_train_loss = 0
         for batch in tqdm(train_dataloader):
             b_input_ids = batch[0].to(device)
