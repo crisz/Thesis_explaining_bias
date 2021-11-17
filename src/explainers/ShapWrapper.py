@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 
+from utils.cuda import get_device
 from utils.huggingface import get_tokens_from_sentences
 
 
@@ -9,6 +10,7 @@ class ShapWrapper(torch.nn.Module):
         super(ShapWrapper, self).__init__()
         self.model = model
         self.tokenizer = tokenizer
+        self.device = get_device()
 
     def forward(self, data, embedding=False):
         print("%%%% Received data with shape ", data.shape)
@@ -17,6 +19,8 @@ class ShapWrapper(torch.nn.Module):
 
         val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(data.reshape(-1), tokenizer=self.tokenizer)
         print("val_input_ids", val_input_ids.shape)
+        val_input_ids.to(self.device)
+        val_attention_masks.to(self.device)
         outputs = self.model(
             input_ids=val_input_ids,
             attention_mask=val_attention_masks,
@@ -29,6 +33,6 @@ class ShapWrapper(torch.nn.Module):
         predictions = torch.nn.functional.softmax(outputs.logits, dim=1)
 
         if not embedding:
-            return predictions.detach().numpy()
+            return predictions.detach().to('cpu').numpy()
         else:
             return predictions, outputs.embedding_outputs
