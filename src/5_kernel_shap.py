@@ -20,7 +20,7 @@ def main():
     print(">>> Loaded model")
     device = get_device()
     model.to(device)
-    train_data_size = 100
+    train_data_size = 10
     test_data_size = 10
     offset = train_data_size + test_data_size
 
