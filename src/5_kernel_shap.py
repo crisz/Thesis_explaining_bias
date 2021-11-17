@@ -46,7 +46,7 @@ def main():
     e = shap.KernelExplainer(wrapped, train_data)
 
     for i, data in enumerate(test_data):
-        shap_values = e.shap_values(data, nsamples=10)
+        shap_values = e.shap_values(data.reshape(1, -1), nsamples=10)
         print("Shap values length and type: ", len(shap_values), type(shap_values))
         print("Original sentence: ", val_sentences[i])
         print("Shap values: ")
