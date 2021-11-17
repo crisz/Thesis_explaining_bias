@@ -22,6 +22,7 @@ def main():
     train_data_size = 100
     test_data_size = 10
     offset = train_data_size + test_data_size
+    val_sentences = [sentence.split(' ') for sentence in val_sentences]
     train_data = np.array(val_sentences[test_data_size:offset]).reshape(-1, 1)
     test_data = np.array(val_sentences[:test_data_size]).reshape(-1, 1)
 

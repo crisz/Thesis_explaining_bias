@@ -16,8 +16,10 @@ class ShapWrapper(torch.nn.Module):
         print("%%%% Received data with shape ", data.shape)
         # if len(data.shape) == 2:
         #     data = data.reshape(-1, 64, 768)
+        data = data.reshape(-1)
+        data = np.array([' '.join(sentence) for sentence in data])
 
-        val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(data.reshape(-1), tokenizer=self.tokenizer)
+        val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(data, tokenizer=self.tokenizer)
         print("val_input_ids", val_input_ids.shape)
         val_input_ids = val_input_ids.to(self.device)
         val_attention_masks = val_attention_masks.to(self.device)
