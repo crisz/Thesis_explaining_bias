@@ -18,7 +18,7 @@ def main():
     device = get_device()
     model.to(device)
     wrapped = ShapWrapper(model=model, tokenizer=tokenizer)
-    train_data = np.array(val_sentences[10:]).reshape(-1, 1)
+    train_data = np.array(val_sentences[10:40]).reshape(-1, 1)
     test_data = np.array(val_sentences[:10]).reshape(-1, 1)
 
     print(train_data.shape)
