@@ -15,6 +15,7 @@ def main():
     val_labels, val_sentences = load_misogyny_val_dataset()
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
+    print("*", val_sentences.shape)
     device = get_device()
 
     model.to(device)

@@ -39,6 +39,17 @@ def main():
         output_attentions=True
     )
 
+    print(out.keys())
+    attention1 = out.attentions[1]
+    value = out.value[1]
+    result = torch.matmul(attention1, value)
+    result = result.permute(0, 2, 1, 3).contiguous().view(*out.context[1].shape)
+    print("="*10)
+    print(result[0, 0])
+
+    print("#"*10)
+    print(out.context[1][0, 0])
+
     current_sentence = val_sentences[sentence_index]
 
     print("Examining the following sentence: ")
