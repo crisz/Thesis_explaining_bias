@@ -19,8 +19,9 @@ class ShapWrapper(torch.nn.Module):
 
         val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(data.reshape(-1), tokenizer=self.tokenizer)
         print("val_input_ids", val_input_ids.shape)
-        val_input_ids.to(self.device)
-        val_attention_masks.to(self.device)
+        val_input_ids = val_input_ids.to(self.device)
+        val_attention_masks = val_attention_masks.to(self.device)
+        self.model.to(self.device)
         outputs = self.model(
             input_ids=val_input_ids,
             attention_mask=val_attention_masks,
