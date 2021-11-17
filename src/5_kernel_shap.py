@@ -28,9 +28,10 @@ def main():
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
     shap_values = e.shap_values(test_data, nsamples=10)
-    print(type(shap_values))
-    print(shap_values.shape)
-    np.save(Path('.') / 'shap_values.npy', shap_values)
+    print("Shap values length: ", len(shap_values))
+    for i, value in enumerate(shap_values):
+        print(value.shape)
+        np.save(Path('.') / f'shap_values_{i}.npy', value)
 
 
 if __name__ == '__main__':
