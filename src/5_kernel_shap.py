@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import numpy as np
 
@@ -23,7 +24,10 @@ def main():
 
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
-    e.shap_values(test_data, nsamples=10)
+    shap_values = e.shap_values(test_data, nsamples=10)
+    print(type(shap_values))
+    print(shap_values.shape)
+    np.save(Path('.') / 'shap_values.npy', shap_values)
 
 
 if __name__ == '__main__':
