@@ -1729,6 +1729,8 @@ class BaseModelOutputWithPoolingAndCrossAttentions(ModelOutput):
 class BertForSequenceClassification(BertPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
+        print("*** Calling custom BertForSequenceClassification ***")
+
         self.num_labels = config.num_labels
         self.config = config
 
@@ -1758,7 +1760,6 @@ class BertForSequenceClassification(BertPreTrainedModel):
             If :obj:`config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
 
-        print("*** Calling custom BertForSequenceClassification ***")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         # noinspection PyCallingNonCallable

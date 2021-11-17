@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from tqdm import tqdm
 
 from utils.cuda import get_device
 from utils.huggingface import get_tokens_from_sentences
@@ -32,7 +33,7 @@ class ShapWrapper(torch.nn.Module):
         iterations = ids_length//batch_size + 1
 
         total_prediction = torch.empty((ids_length, 2))
-        for i in range(iterations):
+        for i in tqdm(range(iterations)):
             offset_0 = i * batch_size
             offset_1 = i * batch_size + 1
             batch_ids = val_input_ids[offset_0:offset_1]

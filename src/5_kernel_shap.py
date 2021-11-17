@@ -53,6 +53,13 @@ def main():
     print(df2.head())
     shap_values = e.shap_values(X=df2, l1_reg="aic", nsamples="auto")
 
+    s0, s1 = shap_values
+    np.save(Path('.') / 's0.npy', s0)
+    np.save(Path('.') / 's1.npy', s1)
+
+    print(s0.shape)
+    print(s1.shape)
+
     # for i, data in enumerate(test_data):
     #     print("shape before reshaping: ", data.shape)
     #     print("shape after reshaping: ", test_data[i].reshape(1, -1).shape)
