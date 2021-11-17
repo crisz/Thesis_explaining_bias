@@ -27,18 +27,28 @@ class ShapWrapper(torch.nn.Module):
         val_attention_masks = val_attention_masks.to(self.device)
         self.model.to(self.device)
 
-        outputs = self.model(
-            input_ids=val_input_ids,
-            attention_mask=val_attention_masks,
-            token_type_ids=None,
-            labels=None,
-            return_dict=True,
-            output_attentions=True
-        )
+        ids_length = len(val_input_ids)
+        batch_size = 2
+        iterations = ids_length//batch_size + 1
 
-        predictions = torch.nn.functional.softmax(outputs.logits, dim=1)
+        total_prediction = torch.empty((ids_length, 2))
+        for i in range(iterations):
+            offset_0 = i * batch_size
+            offset_1 = i * batch_size + 1
+            batch_ids = val_input_ids[offset_0:offset_1]
+            mask_ids = val_attention_masks[offset_0:offset_1]
+            with torch.no_grad():
+                outputs = self.model(
+                    input_ids=batch_ids,
+                    attention_mask=mask_ids,
+                    token_type_ids=None,
+                    labels=None,
+                    return_dict=True,
+                    output_attentions=True
+                )
+            total_prediction[offset_0:offset_1] = torch.nn.functional.softmax(outputs.logits, dim=1)
 
         if not embedding:
-            return predictions.detach().to('cpu').numpy()
+            return total_prediction.detach().to('cpu').numpy()
         else:
-            return predictions, outputs.embedding_outputs
+            return total_prediction, outputs.embedding_outputs
