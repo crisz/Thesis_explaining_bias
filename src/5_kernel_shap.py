@@ -45,7 +45,7 @@ def main():
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
 
-    shap_values = e.shap_values(X=test_data, l1_reg="aic", nsamples="auto")
+    shap_values = e.shap_values(X=test_data.reshape(-1), l1_reg="aic", nsamples="auto")
 
     # for i, data in enumerate(test_data):
     #     print("shape before reshaping: ", data.shape)
