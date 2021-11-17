@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from dataset_utils.load_misogyny import load_misogyny_val_dataset, load_misogyny_train_dataset
 from explainers.ShapWrapper import ShapWrapper
@@ -19,7 +20,7 @@ def main():
     print(">>> Loaded model")
     device = get_device()
     model.to(device)
-    train_data_size = 600
+    train_data_size = 100
     test_data_size = 10
     offset = train_data_size + test_data_size
 
@@ -44,18 +45,22 @@ def main():
 
     print(train_data.shape)
 
-    e = shap.KernelExplainer(wrapped, shap.kmeans(train_data, k=200))
+    df = pd.DataFrame(train_data)
+    print(df.head())
+    e = shap.KernelExplainer(wrapped, df)
 
-    # shap_values = e.shap_values(X=test_data, l1_reg="aic", nsamples="auto")
+    df2 = pd.DataFrame(test_data)
+    print(df2.head())
+    shap_values = e.shap_values(X=df2, l1_reg="aic", nsamples="auto")
 
-    for i, data in enumerate(test_data):
-        print("shape before reshaping: ", data.shape)
-        print("shape after reshaping: ", test_data[i].reshape(1, -1).shape)
-        shap_values = e.shap_values(X=test_data[i].reshape(-1, 1), l1_reg="aic", nsamples="auto")
-        print("Shap values length and type: ", len(shap_values), type(shap_values))
-        print("Original sentence: ", val_sentences[i])
-        print("Shap values: ")
-        print(shap_values)
+    # for i, data in enumerate(test_data):
+    #     print("shape before reshaping: ", data.shape)
+    #     print("shape after reshaping: ", test_data[i].reshape(1, -1).shape)
+    #     shap_values = e.shap_values(X=test_data[i].reshape(-1, 1), l1_reg="aic", nsamples="auto")
+    #     print("Shap values length and type: ", len(shap_values), type(shap_values))
+    #     print("Original sentence: ", val_sentences[i])
+    #     print("Shap values: ")
+    #     print(shap_values)
 
 
 if __name__ == '__main__':
