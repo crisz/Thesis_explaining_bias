@@ -45,14 +45,16 @@ def main():
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
 
-    for i, data in enumerate(test_data):
-        print("shape before reshaping: ", data.shape)
-        print("shape after reshaping: ", test_data[i].reshape(-1).shape)
-        shap_values = e.shap_values(X=test_data[i].reshape(-1), l1_reg="aic", nsamples="auto")
-        print("Shap values length and type: ", len(shap_values), type(shap_values))
-        print("Original sentence: ", val_sentences[i])
-        print("Shap values: ")
-        print(shap_values)
+    shap_values = e.shap_values(X=test_data, l1_reg="aic", nsamples="auto")
+
+    # for i, data in enumerate(test_data):
+    #     print("shape before reshaping: ", data.shape)
+    #     print("shape after reshaping: ", test_data[i].reshape(-1).shape)
+    #     shap_values = e.shap_values(X=test_data[i].reshape(-1), l1_reg="aic", nsamples="auto")
+    #     print("Shap values length and type: ", len(shap_values), type(shap_values))
+    #     print("Original sentence: ", val_sentences[i])
+    #     print("Shap values: ")
+    #     print(shap_values)
 
 
 if __name__ == '__main__':
