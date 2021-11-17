@@ -34,9 +34,10 @@ class ShapWrapper(torch.nn.Module):
 
         total_prediction = torch.empty((ids_length, 2))
         for i in tqdm(range(iterations)):
-            print(data[offset_0])
             offset_0 = i * batch_size
             offset_1 = i * batch_size + 1
+            print(data[offset_0])
+
             batch_ids = val_input_ids[offset_0:offset_1]
             mask_ids = val_attention_masks[offset_0:offset_1]
             with torch.no_grad():
