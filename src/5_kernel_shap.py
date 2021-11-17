@@ -19,8 +19,11 @@ def main():
     device = get_device()
     model.to(device)
     wrapped = ShapWrapper(model=model, tokenizer=tokenizer)
-    train_data = np.array(val_sentences[10:40]).reshape(-1, 1)
-    test_data = np.array(val_sentences[:10]).reshape(-1, 1)
+    train_data_size = 100
+    test_data_size = 10
+    offset = train_data_size + test_data_size
+    train_data = np.array(val_sentences[test_data_size:offset]).reshape(-1, 1)
+    test_data = np.array(val_sentences[:test_data_size]).reshape(-1, 1)
 
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
