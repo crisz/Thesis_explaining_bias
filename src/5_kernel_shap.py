@@ -44,7 +44,7 @@ def main():
 
     print(train_data.shape)
 
-    e = shap.KernelExplainer(wrapped, shap.kmeans(train_data, k=500))
+    e = shap.KernelExplainer(wrapped, shap.kmeans(train_data, k=200))
 
     # shap_values = e.shap_values(X=test_data, l1_reg="aic", nsamples="auto")
 
