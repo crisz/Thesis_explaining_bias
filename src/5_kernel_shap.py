@@ -37,7 +37,7 @@ def main():
     encoder = OrdinalEncoder()
     input_sentences = encoder.fit_transform(input_sentences)
 
-    train_data = np.array(input_sentences[test_data_size:offset]).reshape((-1, 64, 1))
+    train_data = np.array(input_sentences[test_data_size:offset]).reshape((-1, 64))
     test_data = np.array(input_sentences[:test_data_size]).reshape((-1, 64, 1))
 
     wrapped = ShapWrapper(model=model, tokenizer=tokenizer, encoder=encoder)
