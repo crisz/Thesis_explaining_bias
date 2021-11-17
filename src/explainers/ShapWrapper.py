@@ -19,7 +19,6 @@ class ShapWrapper(torch.nn.Module):
         # if len(data.shape) == 2:
         #     data = data.reshape(-1, 64, 768)
         data = self.encoder.inverse_transform(data.reshape(-1, 64))
-        print("**", data)
         data = np.array([' '.join(sentence) for sentence in data])
 
         val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(data, tokenizer=self.tokenizer)

@@ -23,9 +23,9 @@ def main():
     test_data_size = 10
     offset = train_data_size + test_data_size
 
-    val_sentences = [sentence.split(' ') for sentence in val_sentences]
+    splitted_val_sentences = [sentence.split(' ') for sentence in val_sentences]
     input_sentences = []
-    for sentence in val_sentences:
+    for sentence in splitted_val_sentences:
         sen_len = len(sentence)
         padding = 64 - sen_len
         padded_sentence = sentence + ['', ]*padding
@@ -44,11 +44,13 @@ def main():
 
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
-    shap_values = e.shap_values(test_data, nsamples=10)
-    print("Shap values length: ", len(shap_values))
-    for i, value in enumerate(shap_values):
-        print(value.shape)
-        np.save(Path('.') / f'shap_values_{i}.npy', value)
+
+    for i, data in enumerate(test_data):
+        shap_values = e.shap_values(data, nsamples=10)
+        print("Shap values length and type: ", len(shap_values), type(shap_values))
+        print("Original sentence: ", val_sentences[i])
+        print("Shap values: ")
+        print(shap_values)
 
 
 if __name__ == '__main__':
