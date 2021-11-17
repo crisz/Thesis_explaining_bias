@@ -21,7 +21,7 @@ def main():
     device = get_device()
     model.to(device)
     train_data_size = 10
-    test_data_size = 10
+    test_data_size = 1
     offset = train_data_size + test_data_size
 
     splitted_val_sentences = [sentence.split(' ') for sentence in val_sentences]
