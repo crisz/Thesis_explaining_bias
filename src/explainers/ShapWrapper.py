@@ -36,7 +36,7 @@ class ShapWrapper(torch.nn.Module):
         for i in tqdm(range(iterations)):
             offset_0 = i * batch_size
             offset_1 = i * batch_size + 1
-            if offset_0 > len(data):
+            if offset_0 < len(data):
                 print(data[offset_0])
 
             batch_ids = val_input_ids[offset_0:offset_1]
