@@ -8,6 +8,7 @@ from explainers.ShapWrapper import ShapWrapper
 from utils.cuda import get_device
 from utils.save_model import load_model
 import shap
+from sklearn.preprocessing import OrdinalEncoder
 
 
 def main():
@@ -18,13 +19,28 @@ def main():
     print(">>> Loaded model")
     device = get_device()
     model.to(device)
-    wrapped = ShapWrapper(model=model, tokenizer=tokenizer)
     train_data_size = 100
     test_data_size = 10
     offset = train_data_size + test_data_size
+
     val_sentences = [sentence.split(' ') for sentence in val_sentences]
-    train_data = np.array(val_sentences[test_data_size:offset]).reshape(-1, 1)
-    test_data = np.array(val_sentences[:test_data_size]).reshape(-1, 1)
+    input_sentences = []
+    for sentence in val_sentences:
+        sen_len = len(sentence)
+        padding = 64 - sen_len
+        padded_sentence = sentence + ['', ]*padding
+        padded_sentence = np.array(padded_sentence)
+        input_sentences.append(padded_sentence)
+
+    input_sentences = np.array(input_sentences)
+
+    encoder = OrdinalEncoder()
+    input_sentences = encoder.fit_transform(input_sentences)
+
+    train_data = np.array(input_sentences[test_data_size:offset]).reshape((-1, 64, 1))
+    test_data = np.array(input_sentences[:test_data_size]).reshape((-1, 64, 1))
+
+    wrapped = ShapWrapper(model=model, tokenizer=tokenizer, encoder=encoder)
 
     print(train_data.shape)
     e = shap.KernelExplainer(wrapped, train_data)
