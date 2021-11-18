@@ -19,7 +19,6 @@ def calculate_token_attribution(hidden_token, embedding):
 def main():
     model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
     val_labels, val_sentences = load_misogyny_val_dataset()
-    val_sentences[3] = "My mother is a bitch"
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
@@ -28,7 +27,7 @@ def main():
     model.eval()
     model.zero_grad()
 
-    sentence_index = 3
+    sentence_index = 127
 
     out = model.forward(
         val_input_ids[sentence_index:sentence_index+1].to(device),
@@ -57,13 +56,16 @@ def main():
     print()
     print("The ground truth label is: {}".format(val_labels[sentence_index][0]))
     print("The predicted label is: {}".format(np.argmax(out.logits.detach().numpy())))
+    print(out.logits.detach().numpy())
     print()
     print()
 
-    last_layer_cls = out.hidden_states[12][0]
+    last_layer_cls = out.logits
     hta = calculate_token_attribution(last_layer_cls, out.embedding_outputs)
     print(hta)
     print(hta.shape)
+
+    # gradcam
 
     for index, token in enumerate(val_input_ids[sentence_index]):
         decoded_token = tokenizer.decode(token)

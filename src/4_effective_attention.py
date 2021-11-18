@@ -53,6 +53,7 @@ def main():
     T = value
     # Decomposizione
     U, S, V = torch.Tensor.svd(T, some=False, compute_uv=True)
+    print("U S, and V shapes are: ", U.shape, S.shape, V.shape)
     bound = torch.finfo(S.dtype).eps * max(U.shape[1], V.shape[1])
     grater_than_bound: torch.Tensor = S > bound
     # noinspection PyArgumentList

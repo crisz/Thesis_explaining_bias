@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 from utils.images import load_pattern
 
-
+#127
 def main():
     for layer_index in range(2, 6):
         for head_index in range(6, 10):
