@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from dataset_utils.load_misogyny import load_misogyny_val_dataset, load_misogyny_train_dataset
-from explainers.ShapWrapper import ShapWrapper
+from explainers.KernelShapWrapper import KernelShapWrapper
 from utils.cuda import get_device
 from utils.save_model import load_model
 import shap
@@ -41,7 +41,7 @@ def main():
     train_data = np.array(input_sentences[test_data_size:offset]).reshape((-1, 64))
     test_data = np.array(input_sentences[:test_data_size]).reshape((-1, 64))
 
-    wrapped = ShapWrapper(model=model, tokenizer=tokenizer, encoder=encoder)
+    wrapped = KernelShapWrapper(model=model, tokenizer=tokenizer, encoder=encoder)
 
     print(train_data.shape)
 

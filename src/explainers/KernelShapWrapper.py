@@ -7,9 +7,9 @@ from utils.huggingface import get_tokens_from_sentences
 from sklearn.preprocessing import OrdinalEncoder
 
 
-class ShapWrapper(torch.nn.Module):
+class KernelShapWrapper(torch.nn.Module):
     def __init__(self, model, tokenizer, encoder):
-        super(ShapWrapper, self).__init__()
+        super(KernelShapWrapper, self).__init__()
         self.model = model
         self.tokenizer = tokenizer
         self.device = get_device()
@@ -35,9 +35,7 @@ class ShapWrapper(torch.nn.Module):
         total_prediction = torch.empty((ids_length, 2))
         for i in tqdm(range(iterations)):
             offset_0 = i * batch_size
-            offset_1 = i * batch_size + 1
-            if offset_0 < len(data):
-                print(data[offset_0])
+            offset_1 = (i + 1) * batch_size
 
             batch_ids = val_input_ids[offset_0:offset_1]
             mask_ids = val_attention_masks[offset_0:offset_1]

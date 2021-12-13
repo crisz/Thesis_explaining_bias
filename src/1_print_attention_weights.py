@@ -1,19 +1,23 @@
-import numpy as np
-import torch
+import argparse
+import os
+from pathlib import Path
 
+import numpy as np
+from tqdm import tqdm
+
+from config import SAVE_PATTERN_PATH
 from dataset_utils.load_misogyny import load_misogyny_val_dataset
-from dataset_utils.load_sst2 import load_sst2_val_dataset
 from utils.cuda import get_device
 from utils.huggingface import get_tokens_from_sentences
+from utils.images import save_map
+from utils.read_json import load_ids, JSON_FILE
 from utils.save_model import load_model
+import matplotlib.pyplot as plt
 
 
-# Nota: il modello è molto sensibile al soggetto (I/you)
-def main():
+def main(args):
     model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
     val_labels, val_sentences = load_misogyny_val_dataset()
-    val_sentences = ["Not all women deserve respect"]
-    val_labels = [[0]]
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
@@ -21,72 +25,133 @@ def main():
     model.to(device)
     model.eval()
 
-    sentence_index = 0
-    token_index = 3
+    predictions = []
 
-    out = model.forward(
-        val_input_ids[sentence_index:sentence_index+1].to(device),
-        val_attention_masks[sentence_index:sentence_index+1].to(device),
-        token_type_ids=None,
-        labels=None,
-        return_dict=True,
-        output_attentions=True
-    )
+    path = args.json_file if args.json_file is not None else JSON_FILE
+    save_path = args.save_path if args.save_path is not None else SAVE_PATTERN_PATH
+    folder = args.folder
 
-    # current_sentence = val_sentences[sentence_index]
+    print(f">> Performing predictions of indices found at path {path}")
 
-    print("Number of attentions: ", len(out.attentions))
-    # Get the last layer, the final one
+    for index in load_ids(path):
+        print(f">> Predicting index {index}")
+        out = model.forward(
+            val_input_ids[index:index+1].to(device),
+            val_attention_masks[index:index+1].to(device),
+            token_type_ids=None,
+            labels=None,
+            return_dict=True,
+            output_attentions=True
+        )
+        prediction = dict()
+        prediction['index'] = index
+        prediction['attention'] = [attentions.detach().numpy()[0] for attentions in out.attentions]
+        predictions.append(prediction)
 
-    last_layer_attention = out.attentions[3]  # output shape: [sentences_number, heads, length, length]
+    print(f">> Prediction done. Saving attention maps at path {save_path}")
+    for prediction in tqdm(predictions):
+        current_index = prediction['index']
+        current_attention = prediction['attention']
 
-    print(last_layer_attention.shape)
+        current_save_path = save_path / folder / f'index_{current_index}'
+        current_save_path_npy = current_save_path / 'npy'
+        current_save_path_png = current_save_path / 'png'
 
-    # We only have one sentece, let's examine
-    # last_layer_current_sentence = last_layer_attention[0]
+        if not current_save_path_npy.exists():
+            os.makedirs(current_save_path_npy)
 
-    # Perform average over heads
-    # last_layer_avg = torch.mean(last_layer_current_sentence, dim=0, keepdim=False)  # shape: LxL = 64x64
+        if not current_save_path_png.exists():
+            os.makedirs(current_save_path_png)
 
-    # The above is what "BERT dark secrets" paper refers as "self-attention maps"
-    #
-    # for hidden_state in out.hidden_states:
-    #     print("hs", hidden_state.shape)
-    #
-    # for input_id in val_input_ids:
-    #     print("iid", input_id.shape)
+        # Save attention map for every couple (layer, head)
+        decoded_tokens = [tokenizer.decode(token) for token in val_input_ids[current_index]]
+        real_sentence_length = decoded_tokens.index("[ P A D ]")
+        decoded_tokens = decoded_tokens[:real_sentence_length]
 
-    # print("Examining the following sentence: ")
-    # print(current_sentence)
-    # print()
-    # print("The ground truth label is: {}".format(val_labels[sentence_index][0]))
-    # prediction = torch.nn.functional.softmax(out.logits.detach(), dim=1).numpy()
-    # print("The predicted label is: {} ({})".format(np.argmax(prediction), prediction))
-    # print()
-    # print()
-    #
-    # current_token = val_input_ids[sentence_index][token_index]
-    # print("Attentions for token: {} ".format(tokenizer.decode(current_token)))
-    # print()
-    # #
-    # for index, token in enumerate(val_input_ids[sentence_index]):
-    #     decoded_token = tokenizer.decode(token)
-    #     print("{}({:.2f})".format(decoded_token, last_layer_avg[token_index][index].item()), end=' ')
-    #
-    # print()
-    # print()
-    #
-    # average_over_layers = torch.mean(last_layer_avg, dim=0, keepdim=False)
-    #
-    # for index, token in enumerate(val_input_ids[sentence_index]):
-    #     decoded_token = tokenizer.decode(token)
-    #     print("{}({:.2f})".format(decoded_token, average_over_layers[index].item()), end=' ')
-    #
-    # print()
-    print()
+        # total_output = np.stack(current_attention, axis=0).transpose((0, 2, 1, 3)).reshape(12*64, 12*64)
+        # print(">> Saving composition of maps")
+        # save_map(
+        #     map=total_output,
+        #     x_labels=[],
+        #     y_labels=[],
+        #     path=current_save_path_png / 'final_map.png',
+        #     title='Composition of attention maps'
+        # )
+        # exit(-1)
 
-    # matplotlib.heatmap
+        total_output = np.empty((12*real_sentence_length, 12*real_sentence_length))
+        total_output_i = 0
+        total_output_j = 0
+
+        for current_layer in range(12):
+            total_output_j_offset = total_output_j + real_sentence_length
+            for current_head in range(12):
+                sliced_attention_map = current_attention[current_layer][current_head]
+                sliced_attention_map = sliced_attention_map[:real_sentence_length, :real_sentence_length]
+
+                save_map(
+                    map=sliced_attention_map,
+                    x_labels=decoded_tokens,
+                    y_labels=decoded_tokens,
+                    path=current_save_path_png / f'layer_{current_layer}_head_{current_head}.png',
+                    title=f'Attention map for layer {current_layer} and head {current_head}'
+                )
+
+                np.save(current_save_path_npy / f'layer_{current_layer}_head_{current_head}', sliced_attention_map)
+                total_output_i_offset = total_output_i + real_sentence_length
+                total_output[total_output_i:total_output_i_offset, total_output_j:total_output_j_offset] = sliced_attention_map
+                total_output_i = total_output_i_offset
+            total_output_j = total_output_j_offset
+            total_output_i = 0
+
+        print(">> Saving composition of maps")
+        print(total_output.shape)
+
+        save_map(
+            map=total_output,
+            x_labels=[],
+            y_labels=[],
+            path=current_save_path_png / 'final_map.png',
+            title='Composition of attention maps'
+        )
+
+        # Save attention map for every layer averaging across heads
+        for current_layer in range(12):
+            sliced_attention_map = current_attention[current_layer]
+            sliced_attention_map = np.average(sliced_attention_map, axis=0)
+            sliced_attention_map = sliced_attention_map[:real_sentence_length, :real_sentence_length]
+
+            save_map(
+                map=sliced_attention_map,
+                x_labels=decoded_tokens,
+                y_labels=decoded_tokens,
+                path=current_save_path_png / f'layer_{current_layer}_avg_heads.png',
+                title=f'Attention map for layer {current_layer} averaging over heads'
+            )
+
+            np.save(current_save_path_npy / f'layer_{current_layer}_avg_heads', sliced_attention_map)
+
+    print(">> Patterns correctly saved.")
+    print("Done.")
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--json-file',
+                        help='JSON file that stores the indices of selected false positive and false negative',
+                        default=None,
+                        type=str)
+
+    parser.add_argument('--save-path',
+                        help='Path to save the generated images',
+                        default=None,
+                        type=str)
+
+    parser.add_argument('--folder',
+                        help='Task-specific folder to store the results',
+                        required=True,
+                        type=str)
+
+    args = parser.parse_args()
+    main(args)

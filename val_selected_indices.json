@@ -1,0 +1,44 @@
+{
+  "selected": [
+    {
+      "index": 180,
+      "type": "FP"
+    },
+    {
+      "index": 289,
+      "type": "FP"
+    },
+    {
+      "index": 324,
+      "type": "FP"
+    },
+    {
+      "index": 425,
+      "type": "FP"
+    },
+    {
+      "index": 485,
+      "type": "FN"
+    },
+    {
+      "index": 523,
+      "type": "FP"
+    },
+    {
+      "index": 568,
+      "type": "FN"
+    },
+    {
+      "index": 778,
+      "type": "FN"
+    },
+    {
+      "index": 817,
+      "type": "FP"
+    },
+    {
+      "index": 972,
+      "type": "FP"
+    }
+  ]
+}

@@ -19,6 +19,7 @@ def calculate_token_attribution(hidden_token, embedding):
 def main():
     model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
     val_labels, val_sentences = load_misogyny_val_dataset()
+    val_sentences[127] = "@greggutfeld Shut the fuck up you bitch you are a pussy I rape you!!!!"
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
