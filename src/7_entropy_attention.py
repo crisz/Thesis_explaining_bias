@@ -75,10 +75,10 @@ def main():
     model.eval()
     model.zero_grad()
 
-    sentence_index = 5
-    attention_masks = val_attention_masks[sentence_index:sentence_index+16]
+    sentence_index = 972
+    attention_masks = val_attention_masks[sentence_index:sentence_index+1]
     out = model.forward(
-        val_input_ids[sentence_index:sentence_index+16].to(device),
+        val_input_ids[sentence_index:sentence_index+1].to(device),
         attention_masks.to(device),
         token_type_ids=None,
         labels=None,
@@ -112,6 +112,11 @@ def main():
         # **** Riportare
         # La rappresentazione di book a livello 4 viene con poco contesto
 
+        x = current_attention_map.numpy().sum(axis=0)
+        print(x)
+        x = (x - np.min(x)) / (np.max(x) - np.min(x))
+        print("Tokens entropy sum: ")
+        print(x)
         ax.imshow(current_attention_map)
         decoded_tokens = [tokenizer.decode(token) for token in val_input_ids[i+sentence_index]]
         pad_token = "[ P A D ]"
@@ -127,21 +132,6 @@ def main():
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
                  rotation_mode="anchor")
         plt.show()
-    # EW = out.value[layer_index] #ds=64; dv=768
-    # print("EW.shape", EW.shape)
-    # H = out.hidden_weights[layer_index][head_index*64:(head_index+1)*64, :]
-    # EW = EW.reshape((12*64, 64)).transpose(1, 0)
-    # T = torch.matmul(EW, H)
-    # null_space_T = null_space(T.transpose(1, 0).detach().numpy())
-    # null_space_T = torch.Tensor(null_space_T).transpose(1, 0)
-    # print("nst", null_space_T.shape)
-    # attention_transposed = attention.reshape(768, 64)
-    # projection = torch.matmul(null_space_T, attention_transposed)
-    # print(projection.shape)
-    # value = out.value[layer_index]
-    # result = torch.matmul(attention, value)
-    # result = result.permute(0, 2, 1, 3).contiguous().view(*out.context[1].shape)
-    # T = result
 
 
 if __name__ == '__main__':

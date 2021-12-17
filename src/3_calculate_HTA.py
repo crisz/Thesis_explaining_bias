@@ -28,7 +28,7 @@ def main():
     model.eval()
     model.zero_grad()
 
-    sentence_index = 127
+    sentence_index = 972
 
     out = model.forward(
         val_input_ids[sentence_index:sentence_index+1].to(device),
@@ -70,7 +70,7 @@ def main():
 
     for index, token in enumerate(val_input_ids[sentence_index]):
         decoded_token = tokenizer.decode(token)
-        print("{}({:.2f})".format(decoded_token, hta[index].item()), end=' ')
+        print("{}({:.2f})".format(decoded_token, int(hta[index].item()*100)), end=' ')
 
 
 if __name__ == '__main__':

@@ -115,4 +115,34 @@ class PatternClassifier(nn.Module):
                 print(f"Loss at epoch {epoch} is {loss.item()}")
 
 
+class RandomShape:
+    def __init__(self, dim):
+        self.dim = dim
+
+    def random_diagonal(self):
+        mat = torch.from_numpy(np.identity(self.dim))
+        mat = mat + np.random.normal(0, 0.1, mat.shape)**2
+        return np.expand_dims(mat, axis=0)
+
+    def random_vertical(self):
+        mat = np.zeros((self.dim, self.dim))
+        column = random.randrange(0, self.dim)
+        mat[:, column] = 1
+        mat = mat + np.random.normal(0, 0.1, mat.shape)**2
+        return np.expand_dims(mat, axis=0)
+
+    def random_block(self):
+        mat = np.zeros((self.dim, self.dim))
+        row = random.randrange(0, self.dim)
+        column = random.randrange(0, self.dim)
+        mat[:row, :column] = 1
+        mat[row:, column:] = 1
+        mat = mat + np.random.normal(0, 0.1, mat.shape)**2
+        return np.expand_dims(mat, axis=0)
+
+    def random_heterogeneous(self):
+        mat = np.zeros((self.dim, self.dim))
+        mat = mat + np.random.normal(0, 0.6, mat.shape)**2
+        return np.expand_dims(mat, axis=0)
+
 

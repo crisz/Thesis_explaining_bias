@@ -20,9 +20,13 @@ def main():
     print(">>> Loaded model")
     device = get_device()
     model.to(device)
-    train_data_size = 10
-    test_data_size = 1
+    train_data_size = 1  # 100
+    test_data_size = 1  # 10
     offset = train_data_size + test_data_size
+    starting_sentence = 972
+    offset += starting_sentence
+    train_data_size += starting_sentence
+    test_data_size += starting_sentence
 
     splitted_val_sentences = [sentence.split(' ') for sentence in val_sentences]
     input_sentences = []
@@ -59,6 +63,8 @@ def main():
 
     print(s0.shape)
     print(s1.shape)
+
+    print(s1)
 
     # for i, data in enumerate(test_data):
     #     print("shape before reshaping: ", data.shape)
