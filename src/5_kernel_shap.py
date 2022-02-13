@@ -20,31 +20,38 @@ def main():
     print(">>> Loaded model")
     device = get_device()
     model.to(device)
-    train_data_size = 1  # 100
-    test_data_size = 1  # 10
-    offset = train_data_size + test_data_size
-    starting_sentence = 180
-    offset += starting_sentence
-    train_data_size += starting_sentence
-    test_data_size += starting_sentence
 
-    splitted_val_sentences = [sentence.split(' ') for sentence in val_sentences]
-    input_sentences = []
-    for sentence in splitted_val_sentences:
+    train_data_size = 100
+
+    indices = [180, 289, 324, 425, 485, 523, 568, 779, 817, 972]
+
+    splitted_train_sentences = [val_sentences[i].split(' ') for i in range(train_data_size)]
+    padded_train_data = []
+    for sentence in splitted_train_sentences:
         sen_len = len(sentence)
         padding = 64 - sen_len
         padded_sentence = sentence + ['', ]*padding
         padded_sentence = np.array(padded_sentence)
-        input_sentences.append(padded_sentence)
+        padded_train_data.append(padded_sentence)
 
-    input_sentences = np.array(input_sentences)
+    splitted_test_sentences = [val_sentences[i].split(' ') for i in indices]
+    padded_test_data = []
+    for sentence in splitted_test_sentences:
+        sen_len = len(sentence)
+        padding = 64 - sen_len
+        padded_sentence = sentence + ['', ]*padding
+        padded_sentence = np.array(padded_sentence)
+        padded_test_data.append(padded_sentence)
+
+    padded_train_data = np.array(padded_train_data)
 
     encoder = OrdinalEncoder()
-    input_sentences = encoder.fit_transform(input_sentences)
+    padded_train_data = encoder.fit_transform(padded_train_data)
 
-    train_data = np.array(input_sentences[test_data_size:offset]).reshape((-1, 64))
-    test_data = np.array(input_sentences[:test_data_size]).reshape((-1, 64))
-
+    train_data = np.array(padded_train_data).reshape((-1, 64))
+    test_data = np.array(padded_test_data).reshape((-1, 64))
+    print(train_data.shape)
+    print(test_data.shape)
     wrapped = KernelShapWrapper(model=model, tokenizer=tokenizer, encoder=encoder)
 
     print(train_data.shape)
@@ -56,6 +63,8 @@ def main():
     df2 = pd.DataFrame(test_data)
     print(df2.head())
     shap_values = e.shap_values(X=df2, l1_reg="aic", nsamples="auto")
+
+    np.save('./deep_shap_result.npy', shap_values, allow_pickle=True)
 
     s0, s1 = shap_values
     np.save(Path('.') / 's0.npy', s0)
