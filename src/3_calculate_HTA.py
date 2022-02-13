@@ -19,7 +19,6 @@ def calculate_token_attribution(hidden_token, embedding):
 def main():
     model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
     val_labels, val_sentences = load_misogyny_val_dataset()
-    val_sentences[127] = "@greggutfeld Shut the fuck up you bitch you are a pussy I rape you!!!!"
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
@@ -28,7 +27,7 @@ def main():
     model.eval()
     model.zero_grad()
 
-    sentence_index = 972
+    sentence_index = 425
 
     out = model.forward(
         val_input_ids[sentence_index:sentence_index+1].to(device),
@@ -57,20 +56,39 @@ def main():
     print()
     print("The ground truth label is: {}".format(val_labels[sentence_index][0]))
     print("The predicted label is: {}".format(np.argmax(out.logits.detach().numpy())))
-    print(out.logits.detach().numpy())
     print()
     print()
 
     last_layer_cls = out.logits
     hta = calculate_token_attribution(last_layer_cls, out.embedding_outputs)
-    print(hta)
     print(hta.shape)
+    decoded_tokens = [tokenizer.decode(token) for token in val_input_ids[sentence_index]]
+    try:
+        real_sentence_length = decoded_tokens.index("[ P A D ]")
+    except:
+        real_sentence_length = 128
+
+    hta = hta[1:real_sentence_length-1]  # remove [CLS] e [SEP]
+    # hta = hta - torch.mean(hta)  # center values
+    # hta = torch.softmax(hta, dim=-1).numpy()
+
+
+    # ogni token - avg, poi softmax
 
     # gradcam
 
     for index, token in enumerate(val_input_ids[sentence_index]):
         decoded_token = tokenizer.decode(token)
-        print("{}({:.2f})".format(decoded_token, int(hta[index].item()*100)), end=' ')
+        if index == 0: continue
+        if index == real_sentence_length-1: break
+        print("{}, ".format(''.join(decoded_token.split(' '))), end=' ')
+
+    print()
+
+    for index, token in enumerate(val_input_ids[sentence_index]):
+        if index == 0: continue
+        if index == real_sentence_length - 1: break
+        print("{:.2f}, ".format(hta[index - 1].item()), end=' ')
 
 
 if __name__ == '__main__':

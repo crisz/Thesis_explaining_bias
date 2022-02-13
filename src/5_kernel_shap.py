@@ -23,7 +23,7 @@ def main():
     train_data_size = 1  # 100
     test_data_size = 1  # 10
     offset = train_data_size + test_data_size
-    starting_sentence = 972
+    starting_sentence = 180
     offset += starting_sentence
     train_data_size += starting_sentence
     test_data_size += starting_sentence

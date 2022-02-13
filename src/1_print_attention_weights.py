@@ -79,7 +79,10 @@ def main(args):
 
         # Save attention map for every couple (layer, head)
         decoded_tokens = [tokenizer.decode(token) for token in val_input_ids[current_index]]
-        real_sentence_length = decoded_tokens.index("[ P A D ]")
+        try:
+            real_sentence_length = decoded_tokens.index("[ P A D ]")
+        except:
+            real_sentence_length = 128
         decoded_tokens = decoded_tokens[:real_sentence_length]
         x_labels = decoded_tokens
         y_labels = decoded_tokens
@@ -90,6 +93,7 @@ def main(args):
 
         if method == 'effective':
             effective_attention_map = []
+            old_current = current_attention
             for current_layer in range(12):
                 U, S, V = torch.Tensor.svd(torch.from_numpy(current_value[current_layer]), some=False, compute_uv=True)
                 bound = torch.finfo(S.dtype).eps * max(U.shape[1], V.shape[1])
@@ -105,6 +109,7 @@ def main(args):
                 effective_attention = torch.sub(torch.from_numpy(current_attention[current_layer]), projection_attention)
                 effective_attention_map.append(effective_attention[0].numpy())
             current_attention = effective_attention_map
+            print([(current_attention[i] == old_current[i]).all() for i in range(len(current_attention))])
         elif method == 'entropy':
             torch_attention = [torch.from_numpy(np.expand_dims(_attention, axis=0)) for _attention in current_attention]
             _, [current_attention] = compute_negative_entropy(torch_attention, current_mask, True)
