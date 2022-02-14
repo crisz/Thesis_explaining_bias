@@ -46,7 +46,8 @@ def main():
     padded_train_data = np.array(padded_train_data)
 
     encoder = OrdinalEncoder()
-    padded_train_data = encoder.fit_transform(padded_train_data)
+    encoder.fit([*padded_train_data, *padded_test_data])
+    padded_train_data = encoder.transform(padded_train_data)
 
     train_data = np.array(padded_train_data).reshape((-1, 64))
     test_data = np.array(padded_test_data).reshape((-1, 64))
