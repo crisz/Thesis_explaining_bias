@@ -15,7 +15,7 @@ def get_tokens_from_sentences(sentences, tokenizer=None):
             sentence,  # Sentence to encode.
             add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
             truncation=True,
-            max_length=128,  # Pad & truncate all sentences.
+            max_length=64,  # Pad & truncate all sentences.
             padding='max_length',
             return_attention_mask=True,  # Construct attn. masks.
             return_tensors='pt',  # Return pytorch tensors.
