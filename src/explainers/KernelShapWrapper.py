@@ -20,7 +20,7 @@ class KernelShapWrapper(torch.nn.Module):
         # if len(data.shape) == 2:
         #     data = data.reshape(-1, 64, 768)
         print("dtype is: ", data.dtype )
-        if data.dtype == 'float' or data.dtype == 'float32' or data.dtype == 'float64' :
+        if data.dtype == 'float' or data.dtype == 'float32' or data.dtype == 'float64':
             data = self.encoder.inverse_transform(data.reshape(-1, 64))
         data = np.array([' '.join(sentence) for sentence in data])
 
