@@ -40,7 +40,7 @@ def main():
     test_embeddings = embedding[indices].to(device)  # [embedding[i] for i in indices]
     test_ids = val_input_ids[indices].to(device)  # [val_input_ids[i] for i in indices]
 
-    e = shap.DeepExplainer(wrapped, embedding[:200])
+    e = shap.DeepExplainer(wrapped, embedding[:40])
     shap_values = e.shap_values(test_embeddings)
 
     s1 = torch.from_numpy(shap_values[1])
