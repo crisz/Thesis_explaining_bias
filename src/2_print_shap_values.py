@@ -37,6 +37,8 @@ def main():
             )
         embedding[i] = out.embedding_outputs[0]
 
+    embedding = embedding.to(device)
+
     wrapped = DeepShapWrapper(model=model)
 
     test_embeddings = embedding[indices].to(device)  # [embedding[i] for i in indices]
