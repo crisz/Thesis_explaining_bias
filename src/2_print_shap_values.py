@@ -47,9 +47,15 @@ def main():
     s1 = torch.from_numpy(shap_values[1])
     s1 = torch.sum(s1, dim=2)
 
-    for index, token in enumerate(val_input_ids[9]):
-        decoded_token = tokenizer.decode(token)
-        print("{}({:.2f})".format(decoded_token, s1[0, index].item()), end=' ')
+    for sentence_index, _ in enumerate(s1):
+        for index, token in enumerate(val_input_ids[sentence_index]):
+            decoded_token = tokenizer.decode(token)
+            print("{}, ".format(''.join(decoded_token.split(' '))), end=' ')
+        print()
+        for index, token in enumerate(val_input_ids[sentence_index]):
+            print("{:.2f}, ".format(s1[sentence_index, index].item()), end=' ')
+        print()
+        print()
 
 
 if __name__ == '__main__':

@@ -66,7 +66,7 @@ def main():
     print(df2.head())
     shap_values = e.shap_values(X=df2, l1_reg="aic", nsamples="auto")
 
-    np.save('./deep_shap_result.npy', shap_values, allow_pickle=True)
+    np.save('./kernel_shap_result.npy', shap_values, allow_pickle=True)
 
     s0, s1 = shap_values
     np.save(Path('.') / 's0.npy', s0)
