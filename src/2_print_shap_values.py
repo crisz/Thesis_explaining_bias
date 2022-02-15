@@ -25,8 +25,8 @@ def main():
 
     with torch.no_grad():
         out = model.forward(
-            val_input_ids.to(device),
-            val_attention_masks.to(device),
+            val_input_ids[indices].to(device),
+            val_attention_masks[indices].to(device),
             token_type_ids=None,
             labels=None,
             return_dict=True,
@@ -37,14 +37,11 @@ def main():
 
     embedding = out.embedding_outputs
 
-    test_embeddings = [embedding[i] for i in indices]
-    test_ids = [val_input_ids[i] for i in indices]
+    test_embeddings = embedding  # [embedding[i] for i in indices]
+    test_ids = val_input_ids  # [val_input_ids[i] for i in indices]
 
     e = shap.DeepExplainer(wrapped, embedding[:50])
     shap_values = e.shap_values(test_embeddings)
-
-    for i, shap_value in enumerate(shap_values):
-        np.save(Path('.') / f'deep_shap_value_{i}.npy', shap_value)
 
     s1 = torch.from_numpy(shap_values[1])
     s1 = torch.sum(s1, dim=2)
