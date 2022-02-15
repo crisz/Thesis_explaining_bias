@@ -38,7 +38,7 @@ def main():
     embedding = out.embedding_outputs
 
     test_embeddings = embedding.to(device)  # [embedding[i] for i in indices]
-    test_ids = val_input_ids.to(device)  # [val_input_ids[i] for i in indices]
+    test_ids = val_input_ids[indices].to(device)  # [val_input_ids[i] for i in indices]
 
     e = shap.DeepExplainer(wrapped, embedding[:50])
     shap_values = e.shap_values(test_embeddings)
@@ -52,7 +52,7 @@ def main():
             print("{}, ".format(''.join(decoded_token.split(' '))), end=' ')
         print()
         for index, token in enumerate(test_ids[sentence_index]):
-            print("{:.2f}, ".format(s1[sentence_index, index].item()), end=' ')
+            print("{}, ".format(s1[sentence_index, index].item()), end=' ')
         print()
         print()
 
