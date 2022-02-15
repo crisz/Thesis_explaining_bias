@@ -14,7 +14,6 @@ import shap
 def main():
     model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
     val_labels, val_sentences = load_misogyny_val_dataset()
-    val_sentences = val_sentences[:64]
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
@@ -22,7 +21,7 @@ def main():
     model.to(device)
     model.eval()
 
-    # sentence_index = 127
+    indices = [180, 289, 324, 425, 485, 523, 568, 779, 817, 972]
 
     with torch.no_grad():
         out = model.forward(
@@ -37,20 +36,18 @@ def main():
     wrapped = DeepShapWrapper(model=model)
 
     embedding = out.embedding_outputs
-    e = shap.DeepExplainer(wrapped, embedding[10:])
-    shap_values = e.shap_values(embedding[9:10])
+
+    test_embeddings = [embedding[i] for i in indices]
+    e = shap.DeepExplainer(wrapped, embedding[:200])
+    shap_values = e.shap_values(test_embeddings)
+
     for i, shap_value in enumerate(shap_values):
         np.save(Path('.') / f'deep_shap_value_{i}.npy', shap_value)
 
     s1 = torch.from_numpy(shap_values[1])
-    token_len = list(val_attention_masks[9]).index(0)
-    # s1 = s1[:, :token_len, :]
     s1 = torch.sum(s1, dim=2)
 
     for index, token in enumerate(val_input_ids[9]):
-        # if index == token_len:
-        #     break
-
         decoded_token = tokenizer.decode(token)
         print("{}({:.2f})".format(decoded_token, s1[0, index].item()), end=' ')
 
