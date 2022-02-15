@@ -37,8 +37,8 @@ def main():
 
     embedding = out.embedding_outputs
 
-    test_embeddings = embedding  # [embedding[i] for i in indices]
-    test_ids = val_input_ids  # [val_input_ids[i] for i in indices]
+    test_embeddings = embedding.to('cpu')  # [embedding[i] for i in indices]
+    test_ids = val_input_ids.to('cpu')  # [val_input_ids[i] for i in indices]
 
     e = shap.DeepExplainer(wrapped, embedding[:50])
     shap_values = e.shap_values(test_embeddings)
