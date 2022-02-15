@@ -33,7 +33,8 @@ class DeepShapWrapper(torch.nn.Module, ABC):
             if real_size == 0:
                 continue
 
-            mask_ids = torch.from_numpy(np.array((0,)*64*real_size).reshape(real_size, -1))
+            mask_ids = torch.from_numpy(np.array((0,)*64*real_size).reshape(real_size, -1)).to(self.device)
+            batch_ids = batch_ids.to(self.device)
             self.model.eval()
             outputs = self.model(
                 inputs_embeds=batch_ids,
