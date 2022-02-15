@@ -48,4 +48,4 @@ class DeepShapWrapper(torch.nn.Module, ABC):
 
         total_prediction = torch.softmax(total_prediction, dim=1)
         print(total_prediction)
-        return total_prediction
+        return total_prediction.to(self.device)
