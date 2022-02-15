@@ -38,7 +38,9 @@ def main():
     embedding = out.embedding_outputs
 
     test_embeddings = [embedding[i] for i in indices]
-    e = shap.DeepExplainer(wrapped, embedding[:200])
+    test_ids = [val_input_ids[i] for i in indices]
+
+    e = shap.DeepExplainer(wrapped, embedding[:50])
     shap_values = e.shap_values(test_embeddings)
 
     for i, shap_value in enumerate(shap_values):
@@ -48,11 +50,11 @@ def main():
     s1 = torch.sum(s1, dim=2)
 
     for sentence_index, _ in enumerate(s1):
-        for index, token in enumerate(val_input_ids[sentence_index]):
+        for index, token in enumerate(test_ids[sentence_index]):
             decoded_token = tokenizer.decode(token)
             print("{}, ".format(''.join(decoded_token.split(' '))), end=' ')
         print()
-        for index, token in enumerate(val_input_ids[sentence_index]):
+        for index, token in enumerate(test_ids[sentence_index]):
             print("{:.2f}, ".format(s1[sentence_index, index].item()), end=' ')
         print()
         print()
