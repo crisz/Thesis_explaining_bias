@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from datasets import tqdm
+from tqdm import tqdm
 
 from dataset_utils.load_misogyny import load_misogyny_val_dataset
 from explainers.DeepShapWrapper import DeepShapWrapper
