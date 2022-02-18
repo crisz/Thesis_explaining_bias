@@ -42,7 +42,8 @@ def save_map(map, x_labels, y_labels, path, title='', show=False):
 
 def increase_contrast(npy_img):
     img = torch.from_numpy(np.expand_dims(npy_img, axis=0))
-    img = torchvision.transforms.ColorJitter(contrast=5).forward(img).numpy()
+    # save_map(img[0], [], [], None, '', True)
+    img = torchvision.transforms.ColorJitter(contrast=1).forward(img).numpy()
     img = 0.5 + img - np.min(img) / (np.max(img) - np.min(img))
     img = img.astype(int)
     # save_map(img[0], [], [], None, '', True)
