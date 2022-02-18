@@ -36,7 +36,7 @@ def main(args):
         fp_count = 0.0001
         tn_count = 0.0001
         fn_count = 0.0001
-        for index in tqdm(range(len(val_input_ids[:100]))):
+        for index in tqdm(range(len(val_input_ids))):
             out = model.forward(
                 val_input_ids[index:index+1].to(device),
                 val_attention_masks[index:index+1].to(device),
@@ -47,7 +47,7 @@ def main(args):
             )
             prediction = dict()
             prediction['index'] = index
-            prediction['attention'] = [attentions.detach().numpy() for attentions in out.attentions]
+            prediction['attention'] = [attentions.detach().to('cpu').numpy() for attentions in out.attentions]
             for i, attention in enumerate(prediction['attention']):
                 U, S, V = torch.Tensor.svd(torch.from_numpy(attention), some=False, compute_uv=True)
                 bound = torch.finfo(S.dtype).eps * max(U.shape[1], V.shape[1])
