@@ -14,7 +14,8 @@ from utils.huggingface import get_tokens_from_sentences
 from utils.save_model import save_model
 
 
-def main(dataset='misog'):
+def main(args):
+    dataset = args.dataset
     train_labels, train_sentences, val_labels, val_sentences = (None, None, None, None)
     if dataset == 'misog':
         train_labels, train_sentences = load_misogyny_train_dataset()
@@ -41,7 +42,7 @@ def main(dataset='misog'):
     val_labels = torch.Tensor(val_labels).long()
     val_dataset = TensorDataset(val_input_ids, val_attention_masks, val_labels)
 
-    model = train(train_dataset=train_dataset, val_dataset=val_dataset)
+    model = train(train_dataset=train_dataset, val_dataset=val_dataset, args=args)
     save_model(model, train_tokenizer, f'bert-base-uncased-fine-tuned-{dataset}')
 
 
@@ -51,7 +52,7 @@ def flat_accuracy(preds, labels):
     return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
 
-def train(train_dataset, val_dataset):
+def train(train_dataset, val_dataset, args):
     batch_size = 32
 
     train_dataloader = DataLoader(
@@ -75,9 +76,9 @@ def train(train_dataset, val_dataset):
 
     device = get_device()
     model.to(device)
-    optimizer = AdamW(model.parameters(), lr=5e-3, eps=1e-7)
+    optimizer = AdamW(model.parameters(), lr=args.lr, eps=args.eps)
 
-    epochs = 8
+    epochs = args.epochs
 
     model.train()
     scheduler = get_linear_schedule_with_warmup(optimizer,
@@ -163,6 +164,21 @@ if __name__ == '__main__':
                         help='Dataset for the training',
                         default=None,
                         type=str)
+
+    parser.add_argument('--lr',
+                        help='Learning rate for the training',
+                        default=2e-5,
+                        type=float)
+
+    parser.add_argument('--epsilon',
+                        help='Epsilon for the training',
+                        default=1e-9,
+                        type=float)
+
+    parser.add_argument('--epochs',
+                        help='Epochs for the training',
+                        default=4,
+                        type=int)
 
     args = parser.parse_args()
     main(args.dataset)
