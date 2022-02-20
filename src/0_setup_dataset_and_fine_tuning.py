@@ -181,4 +181,4 @@ if __name__ == '__main__':
                         type=int)
 
     args = parser.parse_args()
-    main(args.dataset)
+    main(args)
