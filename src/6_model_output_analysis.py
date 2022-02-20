@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import SequentialSampler, DataLoader, TensorDataset
 from tqdm import tqdm
 
+from dataset_utils.load_immigration import load_immigration_val_dataset
 from dataset_utils.load_misogyny import load_misogyny_val_dataset
 from utils.cuda import get_device
 from utils.huggingface import get_tokens_from_sentences
@@ -13,8 +14,12 @@ import argparse
 
 
 def main(args):
-    model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
-    val_labels, val_sentences = load_misogyny_val_dataset()
+    if args.dataset == 'misog':
+        model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
+        val_labels, val_sentences = load_misogyny_val_dataset()
+    else:
+        model, tokenizer = load_model('bert-base-uncased-fine-tuned-mig')
+        val_labels, val_sentences = load_immigration_val_dataset()
 
     # val_labels = val_labels[30:31]
     # val_sentences = val_sentences[30:31]
@@ -41,7 +46,8 @@ def main(args):
         print(f'File at path {out_file} does not exist. Creating...')
     else:
         print(f'File at path {out_file} does exist. Will append')
-
+    fn_count = 0
+    fp_count = 0
     with open(out_file, "w+") as out:
         headers = ('index', 'source', 'original', 'misclassification_type', 'logits', 'orig_label', 'pred_label')
         out.write('\t'.join(headers)+'\n')
@@ -66,11 +72,13 @@ def main(args):
                     # Case False Negative
                     if real_label and not predicted_label:
                         misclassification_type = 'FN'
+                        fn_count += 1
                         print(f"FN ~ index {j} ~ {val_sentences[j]}")
 
                     # Case False Positive
                     if not real_label and predicted_label:
                         misclassification_type = 'FP'
+                        fp_count += 1
                         print(f"FP ~ index {j} ~ {val_sentences[j]}")
 
                     if misclassification_type:
@@ -78,6 +86,8 @@ def main(args):
                         pred_label = 1 if orig_label == 0 else 0
                         row = (str(j), 'test.tsv', val_sentences[j], misclassification_type, str(logit), str(orig_label), str(pred_label))
                         out.write('\t'.join(row)+'\n')
+    print(f"FP: count = {fp_count}, rate = {fp_count / len(val_sentences)}")
+    print(f"FN: count = {fn_count}, rate = {fn_count / len(val_sentences)}")
 
 
 if __name__ == '__main__':
@@ -88,6 +98,11 @@ if __name__ == '__main__':
                         help='Output file to store false positive and false negative',
                         default='./misclassified.out.tsv',
                         action='store_true')
+
+    parser.add_argument('--dataset',
+                        help='Dataset for the training',
+                        default=None,
+                        type=str)
 
     args = parser.parse_args()
     main(args)

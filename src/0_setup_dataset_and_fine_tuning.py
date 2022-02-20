@@ -146,6 +146,7 @@ def train(train_dataset, val_dataset, args):
 
             # Move logits and labels to CPU
             logits = logits.detach().to('cpu').numpy()
+            print(logits)
             label_ids = b_labels.to('cpu').numpy()
 
             # Calculate the accuracy for this batch of test sentences, and

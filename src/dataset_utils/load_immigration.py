@@ -9,6 +9,19 @@ TEST_PATH = DATASET_PATH_BASE / 'immigration_EN' / 'mig_en_test.tsv'
 
 def load_immigration_dataset(path):
     df = pd.read_csv(path, sep='\t')[['text', 'HS']]
+    df_positive_class = df[df['HS'] == 1]
+    df_negative_class = df[df['HS'] == 0]
+
+    print(df_positive_class.describe())
+    print(df_negative_class.describe())
+
+    print(df_positive_class.head())
+    print(df_negative_class.head())
+
+    undersampled = df_negative_class.sample(len(df_positive_class))
+    df = pd.concat([df_positive_class, undersampled], axis=0).sample(frac=1).reset_index(drop=True)
+    print(df.describe())
+
     npy = df.values
     dataset = np.swapaxes(npy, 0, 1)
     data, labels = dataset
