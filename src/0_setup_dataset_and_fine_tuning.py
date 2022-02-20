@@ -15,6 +15,7 @@ from utils.save_model import save_model
 
 
 def main(dataset='misog'):
+    train_labels, train_sentences, val_labels, val_sentences = (None, None, None, None)
     if dataset == 'misog':
         train_labels, train_sentences = load_misogyny_train_dataset()
         val_labels, val_sentences = load_misogyny_val_dataset()
@@ -24,6 +25,11 @@ def main(dataset='misog'):
     else:
         print(f"The dataset {dataset} is not recognized")
         exit(-1)
+
+    print(train_labels)
+    print(train_sentences)
+    print(val_labels)
+    print(val_sentences)
 
     train_input_ids, train_attention_masks, train_tokenizer = get_tokens_from_sentences(train_sentences)
 
@@ -36,7 +42,7 @@ def main(dataset='misog'):
     val_dataset = TensorDataset(val_input_ids, val_attention_masks, val_labels)
 
     model = train(train_dataset=train_dataset, val_dataset=val_dataset)
-    save_model(model, train_tokenizer, 'bert-base-uncased-fine-tuned-misogyny')
+    save_model(model, train_tokenizer, f'bert-base-uncased-fine-tuned-{dataset}')
 
 
 def flat_accuracy(preds, labels):
@@ -69,7 +75,7 @@ def train(train_dataset, val_dataset):
 
     device = get_device()
     model.to(device)
-    optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
+    optimizer = AdamW(model.parameters(), lr=2e-4, eps=1e-8)
 
     epochs = 4
 
@@ -111,7 +117,7 @@ def train(train_dataset, val_dataset):
             scheduler.step()
         avg_train_loss = total_train_loss / len(train_dataloader)
         print("Average train loss is {}".format(avg_train_loss))
-        avg_train_accuracy = total_train_accuracy / len(val_dataloader)
+        avg_train_accuracy = total_train_accuracy / len(train_dataloader)
         print(">> Train Accuracy: {0:.2f}".format(avg_train_accuracy))
 
         print("Calculating the val accuracy...")
