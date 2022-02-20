@@ -1,9 +1,11 @@
+import argparse
+
 import numpy as np
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from tqdm import tqdm
 
+from dataset_utils.load_immigration import load_immigration_train_dataset, load_immigration_val_dataset
 from dataset_utils.load_misogyny import load_misogyny_val_dataset, load_misogyny_train_dataset
-from dataset_utils.load_sst2 import load_sst2_train_dataset, load_sst2_val_dataset
 from transformers import BertForSequenceClassification, AdamW, get_linear_schedule_with_warmup
 import torch
 
@@ -12,14 +14,22 @@ from utils.huggingface import get_tokens_from_sentences
 from utils.save_model import save_model
 
 
-def main():
-    train_labels, train_sentences = load_misogyny_train_dataset()
+def main(dataset='misog'):
+    if dataset == 'misog':
+        train_labels, train_sentences = load_misogyny_train_dataset()
+        val_labels, val_sentences = load_misogyny_val_dataset()
+    elif dataset == 'mig':
+        train_labels, train_sentences = load_immigration_train_dataset()
+        val_labels, val_sentences = load_immigration_val_dataset()
+    else:
+        print(f"The dataset {dataset} is not recognized")
+        exit(-1)
+
     train_input_ids, train_attention_masks, train_tokenizer = get_tokens_from_sentences(train_sentences)
 
     train_labels = torch.Tensor(train_labels).long()
     train_dataset = TensorDataset(train_input_ids, train_attention_masks, train_labels)
 
-    val_labels, val_sentences = load_misogyny_val_dataset()
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences)
 
     val_labels = torch.Tensor(val_labels).long()
@@ -71,11 +81,12 @@ def train(train_dataset, val_dataset):
     for epoch in range(epochs):
         print("Epoch {} out of {}".format(epoch+1, epochs))
         total_train_loss = 0
+        total_train_accuracy = 0
+
         for batch in tqdm(train_dataloader):
             b_input_ids = batch[0].to(device)
             b_input_mask = batch[1].to(device)
             b_labels = batch[2].to(device)
-
             model.zero_grad()
             result = model.forward(b_input_ids,
                                    token_type_ids=None,
@@ -89,15 +100,24 @@ def train(train_dataset, val_dataset):
             # Avoid the exploding gradient problem:
             # torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
+            logits = result.logits.detach().to('cpu').numpy()
+            label_ids = b_labels.to('cpu').numpy()
+
+            # Calculate the accuracy for this batch of test sentences, and
+            # accumulate it over all batches.
+            total_train_accuracy += flat_accuracy(logits, label_ids)
 
             # TODO: Update the learning rate.
             scheduler.step()
         avg_train_loss = total_train_loss / len(train_dataloader)
         print("Average train loss is {}".format(avg_train_loss))
+        avg_train_accuracy = total_train_accuracy / len(val_dataloader)
+        print(">> Train Accuracy: {0:.2f}".format(avg_train_accuracy))
 
         print("Calculating the val accuracy...")
         total_eval_loss = 0
         total_eval_accuracy = 0
+
         model.eval()
         for batch in tqdm(val_dataloader):
             b_input_ids = batch[0].to(device)
@@ -127,9 +147,16 @@ def train(train_dataset, val_dataset):
 
             # Report the final accuracy for this validation run.
         avg_val_accuracy = total_eval_accuracy / len(val_dataloader)
-        print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
+        print(">> Val Accuracy: {0:.2f}".format(avg_val_accuracy))
     return model
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset',
+                        help='Dataset for the training',
+                        default=None,
+                        type=str)
+
+    args = parser.parse_args()
+    main(args.dataset)
