@@ -76,7 +76,7 @@ def train(train_dataset, val_dataset, args):
 
     device = get_device()
     model.to(device)
-    optimizer = AdamW(model.parameters(), lr=args.lr, eps=args.eps)
+    optimizer = AdamW(model.parameters(), lr=args.lr, eps=args.epsilon)
 
     epochs = args.epochs
 
