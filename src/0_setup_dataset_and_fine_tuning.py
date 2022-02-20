@@ -75,9 +75,9 @@ def train(train_dataset, val_dataset):
 
     device = get_device()
     model.to(device)
-    optimizer = AdamW(model.parameters(), lr=1e-3, eps=1e-7)
+    optimizer = AdamW(model.parameters(), lr=5e-3, eps=1e-7)
 
-    epochs = 4
+    epochs = 8
 
     model.train()
     scheduler = get_linear_schedule_with_warmup(optimizer,
