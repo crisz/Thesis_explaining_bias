@@ -19,7 +19,7 @@ def main(args):
         val_labels, val_sentences = load_misogyny_val_dataset()
     else:
         model, tokenizer = load_model('bert-base-uncased-fine-tuned-mig')
-        val_labels, val_sentences = load_immigration_val_dataset()
+        val_labels, val_sentences = load_immigration_val_dataset(balanced=False)
 
     # val_labels = val_labels[30:31]
     # val_sentences = val_sentences[30:31]

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+from dataset_utils.load_immigration import load_immigration_val_dataset
 from dataset_utils.load_misogyny import load_misogyny_val_dataset
 from dataset_utils.load_sst2 import load_sst2_val_dataset
 from utils.cuda import get_device
@@ -16,9 +17,14 @@ def calculate_token_attribution(hidden_token, embedding):
     return grad
 
 
-def main():
-    model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
-    val_labels, val_sentences = load_misogyny_val_dataset()
+def main(dataset):
+    if dataset == 'misog':
+        model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
+        val_labels, val_sentences = load_misogyny_val_dataset()
+    else:
+        model, tokenizer = load_model('bert-base-uncased-fine-tuned-mig')
+        val_labels, val_sentences = load_immigration_val_dataset(balanced=False)
+
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
@@ -27,7 +33,7 @@ def main():
     model.eval()
     model.zero_grad()
 
-    sentence_index = 289
+    sentence_index = 1138
 
     out = model.forward(
         val_input_ids[sentence_index:sentence_index+1].to(device),
@@ -59,7 +65,7 @@ def main():
     print()
     print()
 
-    last_layer_cls = out.logits
+    last_layer_cls = out.hidden_states[12][0]
     hta = calculate_token_attribution(last_layer_cls, out.embedding_outputs)
     print(hta.shape)
     decoded_tokens = [tokenizer.decode(token) for token in val_input_ids[sentence_index]]
@@ -92,4 +98,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(dataset='mig')

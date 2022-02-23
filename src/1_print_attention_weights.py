@@ -7,6 +7,7 @@ import torch
 from tqdm import tqdm
 
 from config import SAVE_PATTERN_PATH
+from dataset_utils.load_immigration import load_immigration_val_dataset
 from dataset_utils.load_misogyny import load_misogyny_val_dataset
 from utils.cuda import get_device
 from utils.entropy import compute_negative_entropy
@@ -18,8 +19,13 @@ import matplotlib.pyplot as plt
 
 
 def main(args):
-    model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
-    val_labels, val_sentences = load_misogyny_val_dataset()
+    if args.dataset == 'misog':
+        model, tokenizer = load_model('bert-base-uncased-fine-tuned-misogyny')
+        val_labels, val_sentences = load_misogyny_val_dataset()
+    else:
+        model, tokenizer = load_model('bert-base-uncased-fine-tuned-mig')
+        val_labels, val_sentences = load_immigration_val_dataset(balanced=False)
+
     val_input_ids, val_attention_masks, _ = get_tokens_from_sentences(val_sentences, tokenizer=tokenizer)
 
     device = get_device()
@@ -36,8 +42,9 @@ def main(args):
 
     print(f">> Performing predictions of indices found at path {path}")
 
-    for index in load_ids(path):
+    for index in load_ids(path, args.dataset):
         print(f">> Predicting index {index}")
+        print(f">> Related to sentence {''.join([tokenizer.decode(token) for token in val_input_ids[index]])}")
         out = model.forward(
             val_input_ids[index:index+1].to(device),
             val_attention_masks[index:index+1].to(device),
@@ -67,7 +74,7 @@ def main(args):
         if method == 'entropy':
             current_mask = prediction['mask']
 
-        current_save_path = save_path / folder / f'index_{current_index}'
+        current_save_path = Path(save_path) / folder / f'index_{current_index}'
         current_save_path_npy = current_save_path / 'npy'
         current_save_path_png = current_save_path / 'png'
 
@@ -181,6 +188,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--json-file',
                         help='JSON file that stores the indices of selected false positive and false negative',
+                        default=None,
+                        type=str)
+
+    parser.add_argument('--dataset',
+                        help='Dataset used',
                         default=None,
                         type=str)
 
